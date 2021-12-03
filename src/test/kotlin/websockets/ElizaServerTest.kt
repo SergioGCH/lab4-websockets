@@ -11,7 +11,6 @@ import java.net.URI
 import java.util.concurrent.CountDownLatch
 import javax.websocket.*
 
-
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 class ElizaServerTest {
 
@@ -37,7 +36,6 @@ class ElizaServerTest {
         assertEquals("The doctor is in.", list[0])
     }
 
-    @Disabled
     @Test
     fun onChat() {
         val latch = CountDownLatch(4)
@@ -46,8 +44,13 @@ class ElizaServerTest {
         val client = ElizaOnOpenMessageHandlerToComplete(list, latch)
         container.connectToServer(client, URI("ws://localhost:$port/eliza"))
         latch.await()
-        // assertEquals(XXX, list.size) COMPLETE ME
-        // assertEquals(XXX, list[XXX]) COMPLETE ME
+        // 4 possible responses to "I am" sentence
+        assertEquals(4, list.size)
+
+        assert("I am sorry to hear you are hurt." == list[3] ||
+                "How long have you been hurt?" == list[3] ||
+                "Do you believe it is normal to be hurt?" == list[3] ||
+                "Do you enjoy being hurt?" == list[3])
     }
 
 }
@@ -68,8 +71,8 @@ class ElizaOnOpenMessageHandlerToComplete(private val list: MutableList<String>,
     fun onMessage(message: String, session: Session)  {
         list.add(message)
         latch.countDown()
-        // if (COMPLETE ME) {
-        //    COMPLETE ME
-        // }
+         if (latch.count == 1L) {
+            session.getBasicRemote().sendText("i'm hurt")
+         }
     }
 }
